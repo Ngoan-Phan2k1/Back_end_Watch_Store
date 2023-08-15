@@ -96,10 +96,34 @@ const productController = {
         }
     },
 
+    createMobileProduct: async(req, res) => {
+        try{
+            //const {product_id, name,images, thumbnails,price, desription, category} = req.body;
+            const {name,images, thumbnails,price, desription, category, warehouse} = req.body;
+            if(!images) return res.status(400).json({msg: "Không tồn tại ảnh upload"});
+            const product = await Products.findOne({name});
+            if(product) return res.status(400).json({msg: "Sản phẩm này đã tồn tại."});
+
+
+            const newProduct = new Products({
+               name,images, thumbnails,price, desription, category, warehouse
+            })
+            await newProduct.save();
+            const products = await Products.find();
+
+            res.status(200).json(products);
+        } catch(err) {
+            return res.status(500).json(err);
+        }
+    },
+
     deleteProduct: async(req, res) => {
         try{
             await Products.findByIdAndDelete(req.params.id);
-            res.status(200).json("Delete successfully !!!");
+            // const products = await Products.findById(req.params.id).populate("warehouse");
+            // console.log(products);
+            const products = await Products.find();
+            res.status(200).json(products);
         } catch(err) {
             return res.status(500).json(err);
         }
@@ -108,15 +132,48 @@ const productController = {
         try{
             const {product_id, name,images, thumbnails,price, desription, category} = req.body;
 
+
+            // console.log(name);
+
             await Products.findOneAndUpdate({_id: req.params.id}, {
                 product_id, name,images, thumbnails,price, desription, category
             })
+
+            // const content = req.body
+            // await Products.findOneAndUpdate({_id: req.params.id}, {
+            //     content
+            // })
+
+            // console.log("product_id: ", product_id)
+            // console.log("name: ", name)
+            // console.log("images: ", images)
 
             res.status(200).json("Updated successfully!!!");
         } catch(err) {
             return res.status(500).json(err);
         }
     },
+
+
+    updateMobileProduct: async(req, res) => {
+        try{
+            const {product_id, name,images, thumbnails,price, desription, category} = req.body;
+
+
+            // console.log(name);
+
+            await Products.findOneAndUpdate({_id: req.params.id}, {
+                product_id, name,images, thumbnails,price, desription, category
+            })
+
+            const products = await Products.find();
+            res.status(200).json(products);
+            
+        } catch(err) {
+            return res.status(500).json(err);
+        }
+    },
+
 
     getOneProduct: async(req, res) => {
         try{

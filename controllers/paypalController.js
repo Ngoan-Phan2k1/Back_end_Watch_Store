@@ -46,7 +46,7 @@ const paypalController = {
                     // },
                     "amount": {
                         "currency": "USD",
-                        "total": "1.00"
+                        "total": totalUSD
                     },
                     "description": "This is the payment description."
                 }]
@@ -90,13 +90,13 @@ const paypalController = {
             const payerId = req.query.PayerID;
             const paymentId = req.query.paymentId;
             let data=null;
-            console.log("payerId", payerId, "paymentId", paymentId)
+            //console.log("payerId", payerId, "paymentId", paymentId)
             const execute_payment_json = {
                 "payer_id": payerId,
                 "transactions": [{
                     "amount": {
                         "currency":"USD",
-                        "total": "1.00"
+                        "total": totalUSD
                     }
                 }]
             };
@@ -137,25 +137,37 @@ const paypalController = {
                             // Xử lý thông tin về thanh toán
                             const user = await User.findById(userId)
                             const {_id, username, email} = user;
-                            console.log("user_id: ", _id);
-                            console.log("username: ", username);
-                            console.log("email: ", email);
-                            console.log("cart: ", user.cart);
-                            console.log("Order Id: ", payment.cart)
+
+                            const address = {
+                                address: {
+                                    address_line_1: payment.payer.payer_info.shipping_address.line1,
+                                    admin_area_2: payment.payer.payer_info.shipping_address.city,
+                                    admin_area_1: payment.payer.payer_info.shipping_address.state,
+                                    postal_code: payment.payer.payer_info.shipping_address.postal_code,
+                                    country_code: payment.payer.payer_info.shipping_address.country_code
+
+                                },
+                                // given_name: order.payer.name.given_name,
+                                // surname: order.payer.name.surname,
+                                fullname: payment.payer.payer_info.shipping_address.recipient_name,
+                                email: payment.payer.payer_info.email,
+                            }
 
 
-                        //     const newPayment = new Payments({
-                        //         user_id: _id, username, email, user.cart, orderID, address
-                        //    })
+                            const newPayment = new Payments({
+                                user_id: _id, username, email, cart: user.cart, orderID: payment.cart, address
+                           })
 
-                            console.log('Thông tin về thanh toán:');
-                            console.log(JSON.stringify(payment));
+                           await newPayment.save();
+
+                            // console.log('Thông tin về thanh toán:');
+                            //console.log(JSON.stringify(payment));
 
                             
                         }
                     });
 
-                    res.send("Success")
+                    res.send(payment)
 
                     
                 }
